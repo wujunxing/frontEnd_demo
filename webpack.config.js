@@ -1,30 +1,52 @@
-﻿var webpack = require('webpack');
+﻿// webpack.config.js
+var webpack = require("webpack");
+const glob = require('glob');
 
-module.exports = {
+var config = {
     entry: {
-        index: ['./src/index.js','./css/style1.css'],
-        news: './src/news.js',
-        // 第三方包
         vendor: [
           'react',
           'react-dom'
         ]
     },
     output: {
-        path: './dist/',
+        path: __dirname + '/dist/js/',
         filename: '[name].js'
     },
     module: {
-        loaders: [{
-            test: /\.js$/,
-            exclude: /node_modules/,
-            loader: 'babel-loader',
-            query: {
-                presets: ['es2015', 'stage-0', 'react']
-            }
-        }, {
-            test: /\.css$/,
-            loader: "style-loader!css-loader"
-        }]
-    }
+        loaders: [
+          {
+              test: /\.js$/,
+              exclude: /node_modules/,
+              loader: 'babel',
+              query: { presets: ['es2015', 'stage-0', 'react'] }
+          }
+        ]
+    },
+    plugins: [
+      new webpack.optimize.CommonsChunkPlugin('vendor', 'vendor.bundle.js')
+    ]
+};
+
+/**
+ * find entries
+ */
+var files = glob.sync('./src/js/*/index.js');
+var newEntries = files.reduce(function (memo, file) {
+    var name = /.*\/(.*?)\/index\.js/.exec(file)[1];
+    memo[name] = entry(name);
+    return memo;
+}, {});
+
+config.entry = Object.assign({}, config.entry, newEntries);
+
+/**
+ * [entry description]
+ * @param  {[type]} name [description]
+ * @return {[type]}      [description]
+ */
+function entry(name) {
+    return './src/js/' + name + '/index.js';
 }
+
+module.exports = config;
